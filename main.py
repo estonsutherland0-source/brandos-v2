@@ -21,26 +21,38 @@ class BrandRequest(BaseModel):
 
 @app.get("/")
 def home():
-    return {"status": "BrandOS AI Level 2 is running 🚀"}
+    return {"status": "BrandOS AI is running 🚀"}
 
 @app.post("/analyze")
 def analyze(request: BrandRequest):
-    brand = request.brand_name
+    try:
+        brand = request.brand_name
 
-    prompt = f"""
-    You are a business expert.
-    Analyze: {brand}
-    Give weaknesses, opportunities, ideas, and a score out of 100.
-    """
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"""
+Analyze this brand: {brand}
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
-    )
+Give:
+- 5 weaknesses
+- 5 opportunities
+- 3 business ideas
+- revenue strategy
+- score out of 100
+"""
+                }
+            ]
+        )
 
-    return {
-        "brand": brand,
-        "analysis": response.choices[0].message.content
-    }
+        return {
+            "brand": brand,
+            "analysis": response.choices[0].message.content
+        }
+
+    except Exception as e:
+        return {
+            "error": str(e)
+        }
